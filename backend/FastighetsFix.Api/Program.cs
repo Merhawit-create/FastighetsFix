@@ -1,6 +1,8 @@
 using FastighetsFix.Infrastructure;
 using FastighetsFix.Infrastructure.Persistence.Data;
 using FastighetsFix.Api.Endpoints;
+using Microsoft.AspNetCore.Identity;
+
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration
                            .GetConnectionString("DefaultConnection")
@@ -8,7 +10,17 @@ var connectionString = builder.Configuration
                            "Anslutningssträngen DefaultConnection saknas.");
 
 builder.Services.AddInfrastructure(connectionString);
+builder.Services
+    .AddAuthentication(IdentityConstants.BearerScheme)
+    .AddBearerToken(
+        IdentityConstants.BearerScheme,
+        options =>
+        {
+            options.BearerTokenExpiration =
+                TimeSpan.FromMinutes(30);
+        });
 
+builder.Services.AddAuthorization();
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -33,6 +45,7 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapAuthenticationEndpoints();
 app.Run();
