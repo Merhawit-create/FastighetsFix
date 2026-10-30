@@ -3,7 +3,8 @@ using FastighetsFix.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-
+using FastighetsFix.Application.Authentication;
+using FastighetsFix.Infrastructure.Authentication;
 namespace FastighetsFix.Infrastructure;
 
 public static class DependencyInjection
@@ -28,7 +29,9 @@ public static class DependencyInjection
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
-
+        
+        services.AddScoped<IRegistrationService, RegistrationService>();
+        
         return services;
     }
 }

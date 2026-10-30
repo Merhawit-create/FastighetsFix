@@ -1,6 +1,6 @@
 using FastighetsFix.Infrastructure;
 using FastighetsFix.Infrastructure.Persistence.Data;
-
+using FastighetsFix.Api.Endpoints;
 var builder = WebApplication.CreateBuilder(args);
 var connectionString = builder.Configuration
                            .GetConnectionString("DefaultConnection")
@@ -34,5 +34,5 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-
+app.MapAuthenticationEndpoints();
 app.Run();
