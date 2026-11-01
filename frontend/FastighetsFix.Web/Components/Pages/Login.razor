@@ -1,0 +1,106 @@
+﻿@page "/login"
+
+@using FastighetsFix.Web.Authentication
+@using FastighetsFix.Web.Models.Authentication
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject ApiAuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+
+<PageTitle>Logga in – FastighetsFix</PageTitle>
+
+<h1>Logga in</h1>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger" role="alert">
+        @_error
+    </div>
+}
+
+<EditForm Model="_model"
+          OnValidSubmit="LoginAsync"
+          FormName="Login">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <fieldset disabled="@_busy">
+        <div class="mb-3">
+            <label for="loginEmail" class="form-label">
+                E-postadress
+            </label>
+            <InputText id="loginEmail"
+                       type="email"
+                       autocomplete="username"
+                       class="form-control"
+                       @bind-Value="_model.Email" />
+        </div>
+
+        <div class="mb-3">
+            <label for="loginPassword" class="form-label">
+                Lösenord
+            </label>
+            <InputText id="loginPassword"
+                       type="password"
+                       autocomplete="current-password"
+                       class="form-control"
+                       @bind-Value="_model.Password" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">
+            @(_busy ? "Loggar in..." : "Logga in")
+        </button>
+    </fieldset>
+</EditForm>
+
+<p class="mt-3">
+    Saknar du konto? <a href="/register">Skapa konto</a>
+</p>
+
+@code {
+    private readonly LoginForm _model = new();
+    private bool _busy;
+    private string? _error;
+
+    private async Task LoginAsync()
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _error = null;
+
+        try
+        {
+            var succeeded = await AuthState.LoginAsync(_model);
+
+            if (!succeeded)
+            {
+                _error = "Inloggningen misslyckades. "
+                    + "Kontrollera uppgifterna. "
+                    + "Kontot kan också vara tillfälligt låst.";
+
+                return;
+            }
+
+            Navigation.NavigateTo("/profile");
+        }
+        catch (HttpRequestException)
+        {
+            _error = "Kunde inte genomföra inloggningen. "
+                + "Kontrollera att API:et är tillgängligt.";
+        }
+        catch (TaskCanceledException)
+        {
+            _error = "API:et svarade inte i tid. Försök igen.";
+        }
+        finally
+        {
+            _model.Password = "";
+            _busy = false;
+        }
+    }
+}

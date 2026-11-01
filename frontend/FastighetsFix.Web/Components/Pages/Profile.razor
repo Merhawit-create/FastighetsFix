@@ -1,0 +1,41 @@
+﻿@page "/profile"
+
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+
+<PageTitle>Min profil – FastighetsFix</PageTitle>
+
+<h1>Min profil</h1>
+
+<AuthorizeView>
+    <Authorized Context="auth">
+        <dl>
+            <dt>Förnamn</dt>
+            <dd>
+                @auth.User.FindFirst(ClaimTypes.GivenName)?.Value
+            </dd>
+
+            <dt>Efternamn</dt>
+            <dd>
+                @auth.User.FindFirst(ClaimTypes.Surname)?.Value
+            </dd>
+
+            <dt>E-postadress</dt>
+            <dd>
+                @auth.User.FindFirst(ClaimTypes.Email)?.Value
+            </dd>
+
+            <dt>Roller</dt>
+            <dd>
+                @string.Join(", ",
+                    auth.User.FindAll(ClaimTypes.Role)
+                        .Select(claim => claim.Value))
+            </dd>
+        </dl>
+    </Authorized>
+
+    <NotAuthorized>
+        <p>Du behöver logga in för att se din profil.</p>
+        <a href="/login">Logga in</a>
+    </NotAuthorized>
+</AuthorizeView>

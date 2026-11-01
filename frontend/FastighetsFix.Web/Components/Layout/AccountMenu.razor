@@ -1,0 +1,43 @@
+﻿@using FastighetsFix.Web.Authentication
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject ApiAuthenticationStateProvider AuthState
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <div class="p-3">
+            <a href="/profile" class="text-white">
+                Min profil
+            </a>
+
+            <button type="button"
+                    class="btn btn-outline-light mt-2"
+                    @onclick="Logout">
+                Logga ut
+            </button>
+        </div>
+    </Authorized>
+
+    <NotAuthorized>
+        <div class="p-3">
+            <a href="/login" class="text-white">
+                Logga in
+            </a>
+
+            <br />
+
+            <a href="/register" class="text-white">
+                Skapa konto
+            </a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private void Logout()
+    {
+        AuthState.Logout();
+        Navigation.NavigateTo("/");
+    }
+}

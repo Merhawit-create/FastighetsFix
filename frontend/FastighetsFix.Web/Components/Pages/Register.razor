@@ -1,0 +1,152 @@
+﻿@page "/register"
+
+@using FastighetsFix.Web.Models.Authentication
+@using FastighetsFix.Web.Services
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject AuthenticationApiClient ApiClient
+
+<PageTitle>Skapa konto – FastighetsFix</PageTitle>
+
+<h1>Skapa konto</h1>
+
+@if (_registered)
+{
+    <div class="alert alert-success" role="status">
+        Kontot har skapats.
+    </div>
+}
+else
+{
+    @if (_errors.Length > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            <ul class="mb-0">
+                @foreach (var error in _errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        </div>
+    }
+
+    <EditForm Model="_model"
+              OnValidSubmit="RegisterAsync"
+              FormName="Register">
+
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <fieldset disabled="@_busy">
+            <div class="mb-3">
+                <label for="firstName" class="form-label">
+                    Förnamn
+                </label>
+                <InputText id="firstName"
+                           class="form-control"
+                           autocomplete="given-name"
+                           @bind-Value="_model.FirstName" />
+            </div>
+
+            <div class="mb-3">
+                <label for="lastName" class="form-label">
+                    Efternamn
+                </label>
+                <InputText id="lastName"
+                           class="form-control"
+                           autocomplete="family-name"
+                           @bind-Value="_model.LastName" />
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">
+                    E-postadress
+                </label>
+                <InputText id="email"
+                           type="email"
+                           class="form-control"
+                           autocomplete="email"
+                           @bind-Value="_model.Email" />
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    Lösenord
+                </label>
+                <InputText id="password"
+                           type="password"
+                           class="form-control"
+                           autocomplete="new-password"
+                           @bind-Value="_model.Password" />
+
+                <div class="form-text">
+                    Minst 10 tecken med stor och liten bokstav,
+                    siffra och specialtecken.
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="confirmPassword" class="form-label">
+                    Bekräfta lösenord
+                </label>
+                <InputText id="confirmPassword"
+                           type="password"
+                           class="form-control"
+                           autocomplete="new-password"
+                           @bind-Value="_model.ConfirmPassword" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                @(_busy ? "Skapar konto..." : "Skapa konto")
+            </button>
+        </fieldset>
+    </EditForm>
+}
+
+@code {
+    private readonly RegisterForm _model = new();
+    private string[] _errors = [];
+    private bool _busy;
+    private bool _registered;
+
+    private async Task RegisterAsync()
+    {
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _errors = [];
+
+        try
+        {
+            _errors = await ApiClient.RegisterAsync(_model);
+            _registered = _errors.Length == 0;
+
+            if (_registered)
+            {
+                _model.Password = "";
+                _model.ConfirmPassword = "";
+            }
+        }
+        catch (HttpRequestException)
+        {
+            _errors =
+            [
+                "Kunde inte kontakta API:et. Kontrollera att det körs."
+            ];
+        }
+        catch (TaskCanceledException)
+        {
+            _errors =
+            [
+                "API:et svarade inte i tid. Försök igen."
+            ];
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

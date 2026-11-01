@@ -9,7 +9,8 @@ public static class AuthenticationEndpoints
 {
     public static IEndpointRouteBuilder MapAuthenticationEndpoints(
         this IEndpointRouteBuilder endpoints)
-    {
+    {    
+     
         endpoints.MapPost("/api/auth/register", RegisterAsync)
             .AllowAnonymous()
             .WithName("Register")
