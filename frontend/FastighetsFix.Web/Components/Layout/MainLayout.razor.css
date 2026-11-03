@@ -35,7 +35,18 @@ main {
         overflow: hidden;
         text-overflow: ellipsis;
     }
-
+.account-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    min-height: 3.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    background-color: #f7f7f7;
+    border-bottom: 1px solid #d6d5d5;
+}
 @media (max-width: 640.98px) {
     .top-row {
         justify-content: space-between;

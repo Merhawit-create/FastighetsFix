@@ -1,23 +1,38 @@
 ﻿@inherits LayoutComponentBase
+@using Microsoft.AspNetCore.Components.Authorization
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
+<AuthorizeView>
+    <Authorized>
+        <div class="page">
+            <div class="sidebar">
+                <NavMenu />
+            </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <main>
+                <header class="account-header px-4">
+                    <AccountMenu />
+                </header>
+
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
         </div>
+    </Authorized>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+    <NotAuthorized>
+        <main class="container py-5">
+            <h1>Du behöver logga in</h1>
+            <p>Logga in för att använda FastighetsFix.</p>
+            <a href="/login" class="btn btn-primary">
+                Till inloggning
+            </a>
+        </main>
+    </NotAuthorized>
+</AuthorizeView>
 
 <div id="blazor-error-ui" data-nosnippet>
-    An unhandled error has occurred.
-    <a href="." class="reload">Reload</a>
-    <span class="dismiss">🗙</span>
+    Ett oväntat fel har inträffat.
+    <a href="." class="reload">Ladda om</a>
+    <a class="dismiss">🗙</a>
 </div>
