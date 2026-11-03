@@ -4,6 +4,13 @@
 @inject ApiAuthenticationStateProvider AuthState
 @inject NavigationManager Navigation
 
+@if (_logoutError is not null)
+{
+    <div class="alert alert-warning m-2" role="alert">
+        @_logoutError
+    </div>
+}
+
 <AuthorizeView>
     <Authorized>
         <div class="p-3">
@@ -13,8 +20,11 @@
 
             <button type="button"
                     class="btn btn-outline-light mt-2"
-                    @onclick="Logout">
-                Logga ut
+                    disabled="@_busy"
+                    @onclick="LogoutAsync">
+                @(_busy
+                    ? "Loggar ut..."
+                    : "Logga ut från alla sessioner")
             </button>
         </div>
     </Authorized>
@@ -35,9 +45,39 @@
 </AuthorizeView>
 
 @code {
-    private void Logout()
+    private bool _busy;
+    private string? _logoutError;
+
+    private async Task LogoutAsync()
     {
-        AuthState.Logout();
-        Navigation.NavigateTo("/");
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _logoutError = null;
+
+        try
+        {
+            await AuthState.LogoutAsync();
+            Navigation.NavigateTo("/");
+        }
+        catch (HttpRequestException)
+        {
+            _logoutError =
+                "Du är utloggad lokalt, men API:et kunde inte "
+                + "bekräfta återkallningen av dina token.";
+        }
+        catch (TaskCanceledException)
+        {
+            _logoutError =
+                "Du är utloggad lokalt, men API:et svarade inte "
+                + "i tid för att bekräfta återkallningen.";
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 }

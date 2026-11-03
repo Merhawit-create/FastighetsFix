@@ -3,6 +3,9 @@
 public class LoginResult
 {
     public CurrentUserResponse? User { get; init; }
+    public string SecurityStamp { get; init; } = "";
 
-    public bool Succeeded => User is not null;
+    public bool Succeeded =>
+        User is not null
+        && !string.IsNullOrWhiteSpace(SecurityStamp);
 }

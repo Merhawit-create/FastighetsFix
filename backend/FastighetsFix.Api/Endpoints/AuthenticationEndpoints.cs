@@ -29,6 +29,13 @@ public static class AuthenticationEndpoints
             .RequireAuthorization()
             .WithName("GetCurrentUser")
             .WithTags("Authentication");
+        
+        endpoints.MapPost(
+                "/api/auth/logout",
+                LogoutAsync)
+            .RequireAuthorization()
+            .WithName("Logout")
+            .WithTags("Authentication");
         return endpoints;
     }
 
@@ -65,7 +72,11 @@ public static class AuthenticationEndpoints
             new(ClaimTypes.Name, user.Email),
             new(ClaimTypes.Email, user.Email),
             new(ClaimTypes.GivenName, user.FirstName),
-            new(ClaimTypes.Surname, user.LastName)
+            new(ClaimTypes.Surname, user.LastName),
+            
+            new(
+                AuthenticationClaimTypes.SecurityStamp,
+                result.SecurityStamp)
         };
 
         claims.AddRange(
@@ -107,4 +118,28 @@ public static class AuthenticationEndpoints
 
         return Results.Ok(user);
     }  
+    private static async Task<IResult> LogoutAsync(
+        ClaimsPrincipal principal,
+        IAccessTokenService accessTokenService)
+    {
+        var userId = principal.FindFirstValue(
+            ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return Results.Unauthorized();
+        }
+
+        var succeeded =
+            await accessTokenService.RevokeAllAsync(userId);
+
+        if (!succeeded)
+        {
+            return Results.Problem(
+                title: "Utloggningen kunde inte slutföras.",
+                statusCode: StatusCodes.Status503ServiceUnavailable);
+        }
+
+        return Results.NoContent();
+    }
 }

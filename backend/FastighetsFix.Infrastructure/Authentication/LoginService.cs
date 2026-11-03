@@ -55,9 +55,13 @@ public class LoginService : ILoginService
         }
 
         var roles = await _userManager.GetRolesAsync(user);
+        var securityStamp =
+            await _userManager.GetSecurityStampAsync(user);
 
         return new LoginResult
         {
+            SecurityStamp = securityStamp,
+            
             User = new CurrentUserResponse
             {
                 Id = user.Id,
