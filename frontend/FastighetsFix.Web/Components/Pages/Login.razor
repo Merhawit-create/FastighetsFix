@@ -1,5 +1,6 @@
-﻿@page "/login"
-
+﻿@page "/"
+@page "/login"
+@layout FastighetsFix.Web.Components.Layout.AuthLayout
 @using FastighetsFix.Web.Authentication
 @using FastighetsFix.Web.Models.Authentication
 @using Microsoft.AspNetCore.Components.Forms
@@ -86,7 +87,7 @@
                 return;
             }
 
-            Navigation.NavigateTo("/profile");
+           Navigation.NavigateTo("/home");
         }
         catch (HttpRequestException)
         {

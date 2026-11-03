@@ -4,20 +4,29 @@
 @inject ApiAuthenticationStateProvider AuthState
 @inject NavigationManager Navigation
 
-<AuthorizeView>
-    <Authorized>
-        <div class="p-3">
-            <a href="/profile" class="text-white">
-                Min profil
-            </a>
+@if (_logoutError is not null)
+{
+    <div class="alert alert-warning m-2" role="alert">
+        @_logoutError
+    </div>
+}
 
-            <button type="button"
-                    class="btn btn-outline-light mt-2"
-                    @onclick="Logout">
-                Logga ut
-            </button>
-        </div>
-    </Authorized>
+<Authorized>
+    <div class="d-flex align-items-center flex-wrap gap-2">
+        <a href="/profile" class="btn btn-outline-primary">
+            Min profil
+        </a>
+
+        <button type="button"
+                class="btn btn-outline-danger"
+                disabled="@_busy"
+                @onclick="LogoutAsync">
+            @(_busy
+                ? "Loggar ut..."
+                : "Logga ut från alla sessioner")
+        </button>
+    </div>
+</Authorized>
 
     <NotAuthorized>
         <div class="p-3">
@@ -32,12 +41,42 @@
             </a>
         </div>
     </NotAuthorized>
-</AuthorizeView>
+
 
 @code {
-    private void Logout()
+    private bool _busy;
+    private string? _logoutError;
+
+    private async Task LogoutAsync()
     {
-        AuthState.Logout();
-        Navigation.NavigateTo("/");
+        if (_busy)
+        {
+            return;
+        }
+
+        _busy = true;
+        _logoutError = null;
+
+        try
+        {
+            await AuthState.LogoutAsync();
+            Navigation.NavigateTo("/");
+        }
+        catch (HttpRequestException)
+        {
+            _logoutError =
+                "Du är utloggad lokalt, men API:et kunde inte "
+                + "bekräfta återkallningen av dina token.";
+        }
+        catch (TaskCanceledException)
+        {
+            _logoutError =
+                "Du är utloggad lokalt, men API:et svarade inte "
+                + "i tid för att bekräfta återkallningen.";
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 }

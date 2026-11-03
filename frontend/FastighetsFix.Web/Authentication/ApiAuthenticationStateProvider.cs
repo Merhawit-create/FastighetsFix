@@ -109,7 +109,23 @@ public class ApiAuthenticationStateProvider
         NotifyAuthenticationStateChanged(
             Task.FromResult(new AuthenticationState(_user)));
     }
+    public async Task LogoutAsync()
+    {
+        var token = _accessToken;
 
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                await _apiClient.LogoutAsync(token);
+            }
+        }
+        finally
+        {
+            // Rensa den lokala sessionen även om nätverket är nere.
+            Logout();
+        }
+    }
     private void ClearSession()
     {
         _expiryCancellation?.Cancel();

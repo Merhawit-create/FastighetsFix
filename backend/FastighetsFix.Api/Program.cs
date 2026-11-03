@@ -2,6 +2,7 @@ using FastighetsFix.Api.Authorization;
 using FastighetsFix.Infrastructure;
 using FastighetsFix.Infrastructure.Persistence.Data;
 using FastighetsFix.Api.Endpoints;
+using FastighetsFix.Api.Middleware;
 using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,7 +47,9 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+app.UseRouting();
 app.UseAuthentication();
+app.UseMiddleware<TokenRevocationMiddleware>();
 app.UseAuthorization();
 app.MapAuthenticationEndpoints();
 app.MapAdminEndpoints();

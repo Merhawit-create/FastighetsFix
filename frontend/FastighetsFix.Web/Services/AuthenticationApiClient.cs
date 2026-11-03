@@ -102,5 +102,25 @@ public class AuthenticationApiClient
             .ReadFromJsonAsync<UserProfile>();
     }
     
-    
+    public async Task LogoutAsync(string accessToken)
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "api/auth/logout");
+
+        request.Headers.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken);
+
+        using var response = await _httpClient.SendAsync(request);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            // Token är redan ogiltigt eller har gått ut.
+            return;
+        }
+
+        response.EnsureSuccessStatusCode();
+    }   
 }
