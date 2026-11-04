@@ -38,6 +38,7 @@ public static class DependencyInjection
         services.AddScoped<IRegistrationService, RegistrationService>();
         services.AddScoped<ILoginService, LoginService>();
         services.AddScoped<IAccessTokenService, AccessTokenService>();
+        services.AddScoped<ITokenRefreshService, TokenRefreshService>();
         return services;
     }
 }

@@ -20,7 +20,11 @@ builder.Services
         {
             options.BearerTokenExpiration =
                 TimeSpan.FromMinutes(30);
+            options.RefreshTokenExpiration =
+                TimeSpan.FromDays(7);
         });
+
+
 
 //builder.Services.AddAuthorization();
 builder.Services.AddAppAuthorization();
