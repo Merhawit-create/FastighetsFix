@@ -36,6 +36,13 @@ public static class AuthenticationEndpoints
             .RequireAuthorization()
             .WithName("Logout")
             .WithTags("Authentication");
+        
+        endpoints.MapPost(
+                "/api/auth/refresh",
+                RefreshAsync)
+            .AllowAnonymous()
+            .WithName("RefreshToken")
+            .WithTags("Authentication");
         return endpoints;
     }
 
@@ -52,46 +59,13 @@ public static class AuthenticationEndpoints
         return Results.StatusCode(StatusCodes.Status201Created);
     }
     
-    
     private static async Task<IResult> LoginAsync(
         LoginRequest request,
         ILoginService loginService)
     {
         var result = await loginService.LoginAsync(request);
 
-        if (!result.Succeeded || result.User is null)
-        {
-            return Results.Unauthorized();
-        }
-
-        var user = result.User;
-
-        var claims = new List<Claim>
-        {
-            new(ClaimTypes.NameIdentifier, user.Id),
-            new(ClaimTypes.Name, user.Email),
-            new(ClaimTypes.Email, user.Email),
-            new(ClaimTypes.GivenName, user.FirstName),
-            new(ClaimTypes.Surname, user.LastName),
-            
-            new(
-                AuthenticationClaimTypes.SecurityStamp,
-                result.SecurityStamp)
-        };
-
-        claims.AddRange(
-            user.Roles.Select(role =>
-                new Claim(ClaimTypes.Role, role)));
-
-        var identity = new ClaimsIdentity(
-            claims,
-            IdentityConstants.BearerScheme);
-
-        var principal = new ClaimsPrincipal(identity);
-
-        return Results.SignIn(
-            principal,
-            authenticationScheme: IdentityConstants.BearerScheme);
+        return CreateTokenResponse(result);
     }
 
     private static IResult GetCurrentUser(
@@ -141,5 +115,50 @@ public static class AuthenticationEndpoints
         }
 
         return Results.NoContent();
+    }
+    
+    private static IResult CreateTokenResponse(LoginResult result)
+    {
+        if (!result.Succeeded || result.User is null)
+        {
+            return Results.Unauthorized();
+        }
+
+        var user = result.User;
+
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, user.Id),
+            new(ClaimTypes.Name, user.Email),
+            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.GivenName, user.FirstName),
+            new(ClaimTypes.Surname, user.LastName),
+
+            new(
+                AuthenticationClaimTypes.SecurityStamp,
+                result.SecurityStamp)
+        };
+
+        claims.AddRange(
+            user.Roles.Select(role =>
+                new Claim(ClaimTypes.Role, role)));
+
+        var identity = new ClaimsIdentity(
+            claims,
+            IdentityConstants.BearerScheme);
+
+        var principal = new ClaimsPrincipal(identity);
+
+        return Results.SignIn(
+            principal,
+            authenticationScheme: IdentityConstants.BearerScheme);
+    }
+    private static async Task<IResult> RefreshAsync(
+        RefreshTokenRequest request,
+        ITokenRefreshService tokenRefreshService)
+    {
+        var result = await tokenRefreshService.RefreshAsync(request);
+
+        return CreateTokenResponse(result);
     }
 }

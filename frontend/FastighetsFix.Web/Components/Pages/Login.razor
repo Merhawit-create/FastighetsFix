@@ -1,107 +1,84 @@
 ﻿@page "/"
 @page "/login"
 @layout FastighetsFix.Web.Components.Layout.AuthLayout
-@using FastighetsFix.Web.Authentication
-@using FastighetsFix.Web.Models.Authentication
-@using Microsoft.AspNetCore.Components.Forms
 
-@inject ApiAuthenticationStateProvider AuthState
-@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Routing
+
+@attribute [ExcludeFromInteractiveRouting]
 
 <PageTitle>Logga in – FastighetsFix</PageTitle>
 
 <h1>Logga in</h1>
 
-@if (_error is not null)
+@if (ErrorMessage is not null)
 {
     <div class="alert alert-danger" role="alert">
-        @_error
+        @ErrorMessage
     </div>
 }
 
-<EditForm Model="_model"
-          OnValidSubmit="LoginAsync"
-          FormName="Login">
+<form method="post"
+      action="/auth/login"
+      data-enhance="false">
 
-    <DataAnnotationsValidator />
-    <ValidationSummary />
+    <AntiforgeryToken />
 
-    <fieldset disabled="@_busy">
-        <div class="mb-3">
-            <label for="loginEmail" class="form-label">
-                E-postadress
-            </label>
-            <InputText id="loginEmail"
-                       type="email"
-                       autocomplete="username"
-                       class="form-control"
-                       @bind-Value="_model.Email" />
-        </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">
+            E-postadress
+        </label>
 
-        <div class="mb-3">
-            <label for="loginPassword" class="form-label">
-                Lösenord
-            </label>
-            <InputText id="loginPassword"
-                       type="password"
-                       autocomplete="current-password"
-                       class="form-control"
-                       @bind-Value="_model.Password" />
-        </div>
+        <input id="email"
+               name="Email"
+               type="email"
+               class="form-control"
+               autocomplete="username"
+               maxlength="256"
+               required />
+    </div>
 
-        <button type="submit" class="btn btn-primary">
-            @(_busy ? "Loggar in..." : "Logga in")
-        </button>
-    </fieldset>
-</EditForm>
+    <div class="mb-3">
+        <label for="password" class="form-label">
+            Lösenord
+        </label>
+
+        <input id="password"
+               name="Password"
+               type="password"
+               class="form-control"
+               autocomplete="current-password"
+               required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Logga in
+    </button>
+</form>
 
 <p class="mt-3">
-    Saknar du konto? <a href="/register">Skapa konto</a>
+    Saknar du konto?
+    <a href="/register">Skapa konto</a>
 </p>
 
 @code {
-    private readonly LoginForm _model = new();
-    private bool _busy;
-    private string? _error;
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
 
-    private async Task LoginAsync()
+    private string? ErrorMessage => Error switch
     {
-        if (_busy)
-        {
-            return;
-        }
+        "invalid" =>
+            "Inloggningen misslyckades. Kontrollera uppgifterna. "
+            + "Kontot kan också vara tillfälligt låst.",
 
-        _busy = true;
-        _error = null;
+        "unavailable" =>
+            "Vi kan inte logga in dig just nu. Försök igen om en stund.",
 
-        try
-        {
-            var succeeded = await AuthState.LoginAsync(_model);
+        "logout" =>
+            "Du är utloggad lokalt, men API:et kunde inte "
+            + "bekräfta återkallningen av dina token.",
 
-            if (!succeeded)
-            {
-                _error = "Inloggningen misslyckades. "
-                    + "Kontrollera uppgifterna. "
-                    + "Kontot kan också vara tillfälligt låst.";
-
-                return;
-            }
-
-           Navigation.NavigateTo("/home");
-        }
-        catch (HttpRequestException)
-        {
-            _error = "Kunde inte genomföra inloggningen. "
-                + "Kontrollera att API:et är tillgängligt.";
-        }
-        catch (TaskCanceledException)
-        {
-            _error = "API:et svarade inte i tid. Försök igen.";
-        }
-        finally
-        {
-            _model.Password = "";
-            _busy = false;
-        }
-    }
+        _ => null
+    };
 }

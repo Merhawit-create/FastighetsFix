@@ -122,5 +122,24 @@ public class AuthenticationApiClient
         }
 
         response.EnsureSuccessStatusCode();
-    }   
+    }  
+    
+    public async Task<TokenResponse?> RefreshAsync(
+        string refreshToken)
+    {
+        using var response = await _httpClient.PostAsJsonAsync(
+            "api/auth/refresh",
+            new
+            {
+                refreshToken
+            });
+        if (response.StatusCode == HttpStatusCode.Unauthorized
+            || response.StatusCode == HttpStatusCode.BadRequest)
+        {
+            return null;
+        }
+        response.EnsureSuccessStatusCode();
+        return await response.Content
+            .ReadFromJsonAsync<TokenResponse>();
+    }  
 }
