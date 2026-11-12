@@ -1,82 +1,31 @@
-﻿@using FastighetsFix.Web.Authentication
-@using Microsoft.AspNetCore.Components.Authorization
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.Components.Forms
 
-@inject ApiAuthenticationStateProvider AuthState
-@inject NavigationManager Navigation
+<AuthorizeView>
+    <Authorized>
+        <div class="d-flex align-items-center flex-wrap gap-2">
+            <a href="/profile"
+               class="btn btn-outline-primary">
+                Min profil
+            </a>
 
-@if (_logoutError is not null)
-{
-    <div class="alert alert-warning m-2" role="alert">
-        @_logoutError
-    </div>
-}
+            <form method="post"
+                  action="/auth/logout"
+                  data-enhance="false">
 
-<Authorized>
-    <div class="d-flex align-items-center flex-wrap gap-2">
-        <a href="/profile" class="btn btn-outline-primary">
-            Min profil
-        </a>
+                <AntiforgeryToken />
 
-        <button type="button"
-                class="btn btn-outline-danger"
-                disabled="@_busy"
-                @onclick="LogoutAsync">
-            @(_busy
-                ? "Loggar ut..."
-                : "Logga ut från alla sessioner")
-        </button>
-    </div>
-</Authorized>
+                <button type="submit"
+                        class="btn btn-outline-danger">
+                    Logga ut från alla sessioner
+                </button>
+            </form>
+        </div>
+    </Authorized>
 
     <NotAuthorized>
-        <div class="p-3">
-            <a href="/login" class="text-white">
-                Logga in
-            </a>
-
-            <br />
-
-            <a href="/register" class="text-white">
-                Skapa konto
-            </a>
-        </div>
+        <a href="/login" class="btn btn-primary">
+            Logga in
+        </a>
     </NotAuthorized>
-
-
-@code {
-    private bool _busy;
-    private string? _logoutError;
-
-    private async Task LogoutAsync()
-    {
-        if (_busy)
-        {
-            return;
-        }
-
-        _busy = true;
-        _logoutError = null;
-
-        try
-        {
-            await AuthState.LogoutAsync();
-            Navigation.NavigateTo("/");
-        }
-        catch (HttpRequestException)
-        {
-            _logoutError =
-                "Du är utloggad lokalt, men API:et kunde inte "
-                + "bekräfta återkallningen av dina token.";
-        }
-        catch (TaskCanceledException)
-        {
-            _logoutError =
-                "Du är utloggad lokalt, men API:et svarade inte "
-                + "i tid för att bekräfta återkallningen.";
-        }
-        finally
-        {
-            _busy = false;
-        }
-    }
-}
+</AuthorizeView>

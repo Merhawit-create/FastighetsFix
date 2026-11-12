@@ -10,21 +10,14 @@ public static class WebAuthentication
 
     public const string SessionIdClaim = "web_session_id";
 
-    public static ClaimsPrincipal CreateCookiePrincipal(
-        string sessionId)
+    public static ClaimsPrincipal CreateCookiePrincipal(string sessionId)
     {
-        var identity = new ClaimsIdentity(
-            [
-                new Claim(SessionIdClaim, sessionId)
-            ],
+        var identity = new ClaimsIdentity([new Claim(SessionIdClaim, sessionId)],
             CookieAuthenticationDefaults.AuthenticationScheme);
-
         return new ClaimsPrincipal(identity);
     }
 
-    public static ClaimsPrincipal CreatePrincipal(
-        string sessionId,
-        UserProfile profile)
+    public static ClaimsPrincipal CreatePrincipal(string sessionId, UserProfile profile)
     {
         var claims = new List<Claim>
         {
@@ -35,14 +28,7 @@ public static class WebAuthentication
             new(ClaimTypes.GivenName, profile.FirstName),
             new(ClaimTypes.Surname, profile.LastName)
         };
-
-        claims.AddRange(
-            profile.Roles.Select(role =>
-                new Claim(ClaimTypes.Role, role)));
-
-        return new ClaimsPrincipal(
-            new ClaimsIdentity(
-                claims,
-                CookieAuthenticationDefaults.AuthenticationScheme));
+        claims.AddRange(profile.Roles.Select(role => new Claim(ClaimTypes.Role, role)));
+        return new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme));
     }
 }
